@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "fs";
 import path from "path";
-import PdfData from "../models/PdfData.js";
+import PdfData from "../models/pdfData.js";
 import dotenv from "dotenv";
 import axios from "axios";
 import { PDFDocument } from "pdf-lib";
