@@ -1,0 +1,42 @@
+{
+    "nodes": [
+      {
+        "id": "Webhook1",
+        "name": "Receive Answer",
+        "type": "n8n-nodes-base.webhook",
+        "position": [450, 300],
+        "parameters": {
+          "path": "send-answer",
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "SendEmail1",
+        "name": "Send Email",
+        "type": "n8n-nodes-base.emailSend",
+        "position": [700, 300],
+        "parameters": {
+          "fromEmail": "your-email@example.com",
+          "toEmail": "={{$json[\"email\"]}}",
+          "subject": "Your AI Answer",
+          "text": "Your Answer:\n\n{{$json[\"answer\"]}}"
+        }
+      }
+    ],
+    "connections": {
+      "Receive Answer": {
+        "main": [
+          [
+            {
+              "node": "Send Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    }
+  }
+  
