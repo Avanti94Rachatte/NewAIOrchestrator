@@ -50,8 +50,8 @@ const app = express();
 // Enable CORS to allow your Vercel frontend(s) to access backend
 app.use(cors({
   origin: [
-    "https://new-ai-orchestrator-frontend.vercel.app",
-    "https://new-ai-orchestrator-frontend-9vc0msvou.vercel.app" // include preview deployment too
+    "https://new-ai-orchestrator-frontend.vercel.app", // stable
+    /\.vercel\.app$/                                   // all previews
   ],
   methods: ["GET", "POST"],
   credentials: true
