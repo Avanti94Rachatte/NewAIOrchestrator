@@ -25,19 +25,35 @@ function App() {
     formData.append("email", email);
 
     // Send request to backend
+    // try {
+    //   // Load backend URL from .env
+    //   const backendURL = import.meta.env.VITE_BACKEND_URL;
+    //   const res = await axios.post(`${backendURL}/api/pdf/upload`, formData, {
+    //     headers: { "Content-Type": "multipart/form-data" }
+    //   });
+
+    //   // Store the answer returned by the server
+    //   setAnswer(res.data.answer);
+    // } catch (err) {
+    //   console.error(err);
+    //   alert("Error uploading or getting response");
+    // }
+
     try {
-      // Load backend URL from .env
-      const backendURL = import.meta.env.VITE_BACKEND_URL;
-      const res = await axios.post(`${backendURL}/api/pdf/upload`, formData, {
+      // Use environment variable, fallback to localhost for dev
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    
+      const res = await axios.post(`${API_BASE_URL}/api/pdf/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-
+    
       // Store the answer returned by the server
       setAnswer(res.data.answer);
     } catch (err) {
       console.error(err);
       alert("Error uploading or getting response");
     }
+    
   };
 
   return (
