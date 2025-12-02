@@ -8,7 +8,14 @@ dotenv.config();
 const app = express();
 
 // Enable CORS to allow frontend (React) to access backend
-app.use(cors());
+//https://new-ai-orchestrator-frontend.vercel.app
+app.use(cors(
+  {
+    origin: "https://new-ai-orchestrator-frontend.vercel.app",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+));
 
 // Allow backend to accept JSON request bodies
 app.use(express.json());
