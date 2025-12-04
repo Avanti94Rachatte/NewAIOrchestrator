@@ -25,20 +25,7 @@ function App() {
     formData.append("email", email);
 
     // Send request to backend
-    // try {
-    //   // Load backend URL from .env
-    //   const backendURL = import.meta.env.VITE_BACKEND_URL;
-    //   const res = await axios.post(`${backendURL}/api/pdf/upload`, formData, {
-    //     headers: { "Content-Type": "multipart/form-data" }
-    //   });
-
-    //   // Store the answer returned by the server
-    //   setAnswer(res.data.answer);
-    // } catch (err) {
-    //   console.error(err);
-    //   alert("Error uploading or getting response");
-    // }
-
+  
     try {
       // Always use environment variable (set in .env.development or .env.production)
       const API_BASE_URL = import.meta.env.VITE_API_URL;
