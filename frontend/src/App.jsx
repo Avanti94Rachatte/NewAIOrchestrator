@@ -40,9 +40,9 @@ function App() {
     // }
 
     try {
-      // Use environment variable, fallback to localhost for dev
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    
+      // Always use environment variable (set in .env.development or .env.production)
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      
       const res = await axios.post(`${API_BASE_URL}/api/pdf/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
@@ -53,6 +53,7 @@ function App() {
       console.error(err);
       alert("Error uploading or getting response");
     }
+    
     
   };
 
