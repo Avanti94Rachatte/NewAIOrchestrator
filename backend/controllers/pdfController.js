@@ -43,7 +43,7 @@ export async function uploadPdf(req, res) {
     ];
 
     // call Gemini model
-    const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(contents);
 
     // Extract AI-generated answer
@@ -53,7 +53,7 @@ export async function uploadPdf(req, res) {
     const saved = await PdfData.create({
       filename: file.originalname,
       question,
-      answer
+      answer,
     });
 
     // Send data to n8n webhook (email automation)
