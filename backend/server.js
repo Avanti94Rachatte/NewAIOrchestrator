@@ -2,10 +2,15 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import fs from "fs";
 import pdfRoutes from "./routes/pdfRoutes.js";
 
 dotenv.config();
 const app = express();
+
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
 
 // Enable CORS to allow your Vercel frontend(s) to access backend
 app.use(cors({
@@ -25,14 +30,20 @@ app.use(express.json());
 app.use("/api/pdf", pdfRoutes);
 
 // Connect to MongoDB if URI is provided
-if (process.env.MONGO_URI) {
-  mongoose.connect(process.env.MONGO_URI)
+if (!process.env.MONGO_URI) {
+  console.warn("⚠️ MONGO_URI not set. Database will not connect.");
+} else{
+  mongoose
+    .connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB connected"))
-    .catch((e) => console.error("MongoDB error:", e));
+    .catch((err) => console.error("MongoDB error:", err));
 }
+app.get("/", (req, res) => {
+  res.send("✅ AI PDF Orchestrator Backend is running");
+});
 
 // ✅ Use only process.env.PORT (Render injects this automatically)
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
