@@ -48,7 +48,7 @@ export async function uploadPdf(req, res) {
     // ✅ SAFE Gemini call (won't crash server)
     try {
       const model = ai.getGenerativeModel({
-        model: "gemini-1.5-flash" // ✅ FREE + STABLE
+        model: "gemini-2.0-flash" // ✅ FREE + STABLE
       });
 
       const result = await model.generateContent([
