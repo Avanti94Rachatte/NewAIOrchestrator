@@ -5,9 +5,10 @@ import PdfData from "../models/pdfData.js";
 import dotenv from "dotenv";
 import axios from "axios";
 import { PDFDocument } from "pdf-lib";
+
 dotenv.config();
 
-// FIXED Gemini client // Initialize Gemini AI client using API key from .env
+// Initialize Gemini client
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function uploadPdf(req, res) {
@@ -15,68 +16,90 @@ export async function uploadPdf(req, res) {
     const file = req.file;
     const { question, email } = req.body;
 
-    // Validate request input
+    // ✅ Validate input
     if (!file || !question || !email) {
-      return res.status(400).json({ message: "PDF file, email and question are required." });
+      return res.status(400).json({
+        message: "PDF file, question and email are required"
+      });
     }
 
-    // Build file path and read uploaded PDF file
     const pdfPath = path.join(file.destination, file.filename);
+
+    if (!fs.existsSync(pdfPath)) {
+      return res.status(400).json({ message: "Uploaded file not found" });
+    }
+
     const pdfBytes = fs.readFileSync(pdfPath);
 
-    // Load PDF and check page count
+    // ✅ Check page count
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const pageCount = pdfDoc.getPageCount();
 
-    // Reject very large PDFs (1000-page limit)
     if (pageCount > 1000) {
-      return res.status(400).json({ message: "PDF exceeds 1000-page limit" });
+      return res.status(400).json({
+        message: "PDF exceeds 1000-page limit"
+      });
     }
 
-    // Convert full PDF to Base64 so Gemini can read it
     const base64Data = Buffer.from(pdfBytes).toString("base64");
 
-    // Prepare content for Gemini model: PDF + text question
-    const contents = [
-      { inlineData: { mimeType: "application/pdf", data: base64Data } },
-      { text: `Answer the question based on this document:\n\nQuestion: ${question}` }
-    ];
+    let answer = "AI service is temporarily unavailable. Please try again later.";
 
-    // call Gemini model
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(contents);
+    // ✅ SAFE Gemini call (won't crash server)
+    try {
+      const model = ai.getGenerativeModel({
+        model: "gemini-1.5-flash" // ✅ FREE + STABLE
+      });
 
-    // Extract AI-generated answer
-    const answer = result.response?.text() || "No answer generated";
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: "application/pdf",
+            data: base64Data
+          }
+        },
+        {
+          text: `Answer the question based on this document:\n\n${question}`
+        }
+      ]);
 
-    // Save to DB
+      answer = result.response.text();
+    } catch (aiError) {
+      console.error("Gemini error:", aiError.message);
+    }
+
+    // ✅ Save to MongoDB
     const saved = await PdfData.create({
       filename: file.originalname,
       question,
-      answer,
+      answer
     });
 
-    // Send data to n8n webhook (email automation)
-    try {
-      await axios.post(
-        process.env.N8N_WEBHOOK_URL,{
+    // ✅ Optional n8n webhook
+    if (process.env.N8N_WEBHOOK_URL) {
+      try {
+        await axios.post(process.env.N8N_WEBHOOK_URL, {
           email,
           question,
           answer,
-          filename: file.originalname,
-        }
-      );
-    } catch (err) {
-      console.error("n8n webhook error:", err);
+          filename: file.originalname
+        });
+      } catch (err) {
+        console.error("n8n webhook failed");
+      }
     }
 
-    // Send response back to frontend
-    return res.json({ filename: file.originalname, question, answer, id: saved._id });
+    // ✅ Final response
+    return res.json({
+      success: true,
+      answer,
+      id: saved._id
+    });
 
   } catch (err) {
-
-    // If anything fails, return server error
-    console.error("UploadPdf error:", err);
-    return res.status(500).json({ message: "Server error", error: err.toString() });
+    console.error("SERVER ERROR:", err);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
   }
 }
