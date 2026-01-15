@@ -111,9 +111,13 @@ import path from "path";
 import PdfData from "../models/pdfData.js";
 import dotenv from "dotenv";
 import axios from "axios";
-import pdfParse from "pdf-parse";
+import { createRequire } from "module";
 
 dotenv.config();
+
+// ✅ Fix for pdf-parse in ESM (Node 22)
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -150,20 +154,24 @@ export async function uploadPdf(req, res) {
       });
     }
 
+    // 🔐 Prevent token overflow (VERY IMPORTANT)
+    const trimmedText = pdfText.slice(0, 12000);
+
     let answer = "AI service is temporarily unavailable. Please try again later.";
 
     // ✅ SAFE OpenAI call
     try {
       const response = await openai.responses.create({
-        model: "gpt-4.1-mini", // ✅ Fast + affordable
+        model: "gpt-4.1-mini",
         input: [
           {
             role: "system",
-            content: "You are a helpful assistant that answers questions strictly based on the provided document."
+            content:
+              "You are a helpful assistant that answers questions strictly based on the provided document."
           },
           {
             role: "user",
-            content: `Document content:\n${pdfText}\n\nQuestion:\n${question}`
+            content: `Document:\n${trimmedText}\n\nQuestion:\n${question}`
           }
         ]
       });
@@ -189,12 +197,11 @@ export async function uploadPdf(req, res) {
           answer,
           filename: file.originalname
         });
-      } catch (err) {
+      } catch {
         console.error("n8n webhook failed");
       }
     }
 
-    // ✅ Final response
     return res.json({
       success: true,
       answer,
